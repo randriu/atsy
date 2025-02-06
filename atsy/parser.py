@@ -47,18 +47,3 @@ def vector_import(filename, dtype=int, big_endian=True):
         num_count = os.path.getsize(filename) // type_size
         vector = struct.unpack(f"{byte_order}{num_count}{value_type}", f.read())
     return list(vector)
-
-
-def test():
-    double_numbers = [3.14, 2.71, 1.41, 1.73]
-    int_numbers = [1234567890123456789, 9876543210987654321]
-
-    # export and import doubles
-    vector_export("doubles.bin", double_numbers)
-    loaded_doubles = vector_import("doubles.bin", dtype=float)
-    print(loaded_doubles)
-
-    # export and import unsigned 8-byte integers
-    vector_export("uints.bin", int_numbers)
-    loaded_uints = vector_import("uints.bin", dtype=int)
-    print(loaded_uints)
