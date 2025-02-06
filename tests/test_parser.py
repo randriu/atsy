@@ -1,3 +1,4 @@
+import importlib.resources
 import tempfile
 
 import atsy
@@ -17,8 +18,14 @@ def test_vector_export_unsigned_integer():
 
 
 def test_vector_import():
-    vector = atsy.vector_import("data/vector-double.bin", dtype=float)
+
+    vector = atsy.vector_import(
+        importlib.resources.files("atsy.data").joinpath("vector-double.bin"),
+        dtype=float,
+    )
     assert vector[0] == 3.14
 
-    vector = atsy.vector_import("data/vector-uint.bin", dtype=int)
+    vector = atsy.vector_import(
+        importlib.resources.files("atsy.data").joinpath("vector-uint.bin"), dtype=int
+    )
     assert vector[0] == 5

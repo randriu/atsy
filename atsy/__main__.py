@@ -1,8 +1,8 @@
-import atsy.parser
+import atsy
 
 
 def main():
-    atsy.parser.test()
+    print(f"this is atsy v.{atsy.__version__}")
 
 
 if __name__ == "__main__":

@@ -7,18 +7,35 @@ name = "atsy"
 version = "0.0.2"
 description = "Library for binary encoding of annotated transition systems"
 readme = "README.md"
-authors = [{ name = "Roman Andriushchenko", email = "roman.andriu@gmail.com" }]
-license = { file = "LICENSE" }
+authors = [{name = "Roman Andriushchenko", email = "roman.andriu@gmail.com"}]
+license = {file = "LICENSE"}
 dependencies = [
-    "numpy>=1.21.0",
+  "pytest",
+  "numpy>=1.21.0",
 ]
 requires-python = ">=3.9"
 
 [project.optional-dependencies]
-dev = ["pip-tools", "black", "pytest", "bumpver", "isort"]
+dev = [
+  "pip-tools",
+  "black",
+  "isort",
+  "toml-sort",
+  "twine",
+  "bumpver"
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"atsy" = ["data/*"]
 
 [project.scripts]
 atsy = "atsy.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/randriu/atsy"
 
 [tool.bumpver]
 current_version = "0.0.2"
