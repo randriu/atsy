@@ -1,1 +1,7 @@
-# pymarb
+# atsy
+
+Installation:
+
+```
+pip install atsy
+```

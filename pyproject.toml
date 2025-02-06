@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "atsy"
+version = "0.0.1"
+description = "Library for binary encoding of annotated transition systems"
+readme = "README.md"
+authors = [{ name = "Roman Andriushchenko", email = "roman.andriu@gmail.com" }]
+license = { file = "LICENSE" }
+dependencies = [
+    "numpy>=1.21.0",
+]
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+dev = ["pip-tools", "black", "pytest", "bumpver", "isort"]
+
+[project.scripts]
+atsy = "pymarb.__main__:main"
+
+[tool.bumpver]
+current_version = "0.0.1"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = "bump version {old_version} -> {new_version}"
+tag_message = "{new_version}"
+tag_scope = "default"
+pre_commit_hook = ""
+post_commit_hook = ""
+commit = true
+tag = true
+push = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = ['current_version = "{version}"', 'version = "{version}"']
+"atsy/__init__.py" = ["{version}"]
