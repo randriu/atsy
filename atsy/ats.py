@@ -23,12 +23,23 @@ class Ats:
         self.annotations = None
 
     def validate(self):
-        if not isinstance(self.initial_states, list):
-            raise ValueError("ats.initial_states must be a list")
-        if not isinstance(self.branch_to_target, list):
-            raise ValueError("ats.branch_to_target must be a list")
-        if not isinstance(self.branch_to_value, list):
-            raise ValueError("ats.branch_to_value must be a list")
+
+        def assert_is_list(l, name, length=None):
+            if not isinstance(l,list):
+                raise ValueError(f"{name} must be a list")
+            if length is not None and not len(l) == length:
+                raise ValueError(f"{name} must be of length {length}")
+
+        assert_is_list(self.choice_branches, "ats.choice_branches", self.num_choices)
+        for choice,branches in enumerate(self.choice_branches):
+            assert_is_list(branches, f"ats.choice_branches[{choice}]")
+            if not len(branches) > 0:
+                raise ValueError(f"ats.choice_branches[{choice}] must be a non-empty list")
+
+
+        assert_is_list(self.initial_states, "ats.initial_states")
+        assert_is_list(self.branch_to_target, "ats.branch_to_target")
+        assert_is_list(self.branch_to_value, "ats.branch_to_value")
 
     def choice_successors(self, choice: int) -> set:
         successors = set()

@@ -2,15 +2,17 @@ import stormpy
 
 import atsy
 
-path = "nand.v1.prism"
-prism = stormpy.parse_prism_program(path)
+model_name = "consensus-6-2"
+prism_filename = f"{model_name}.prism"
+drn_filename = f"{model_name}.drn"
+tar_filename = f"{model_name}.tar.gz"
+print(f"building {prism_filename}...")
+prism = stormpy.parse_prism_program(prism_filename)
 model = stormpy.build_model(prism)
+stormpy.export_to_drn(model, drn_filename)
 
-stormpy.export_to_drn(model, "model.drn")
+print(f"building {tar_filename}...")
 ats = atsy.Ats()
-
-tm = model.transition_matrix
-
 ats.index.creation_info.tool = "atsy"
 ats.index.creation_info.version = atsy.__version__
 
@@ -25,26 +27,21 @@ ats.num_branches = 0
 
 ats.initial_states = list(model.initial_states)
 
-ats.choice_branches = []
-
+ats.state_choices = [ None ] * ats.num_states
+ats.choice_branches = [ None ] * ats.num_choices
 ats.branch_to_target = []
 ats.branch_to_value = []
 
-# if model.model_type ==
-if model.model_type == stormpy.storage.ModelType.DTMC:
-    ndi = list(range(ats.num_states + 1))
-    ats.state_choices = atsy.row_start_to_ranges(ndi)
-else:
-    print("yo")
-    exit()
-for choice in range(ats.num_choices):
-    branch_start = ats.num_branches
-    for entry in tm.get_row(choice):
-        ats.branch_to_target.append(entry.column)
-        ats.branch_to_value.append(entry.value())
-        ats.num_branches += 1
-    branch_end = ats.num_branches
-    ats.choice_branches.append(list(range(branch_start, branch_end)))
+tm = model.transition_matrix
+for state in range(ats.num_states):
+    ats.state_choices[state] = list(range(tm.get_row_group_start(state),tm.get_row_group_end(state)))
+    for choice in ats.state_choices[state]:
+        branch_start = ats.num_branches
+        for entry in tm.get_row(choice):
+            ats.branch_to_target.append(entry.column)
+            ats.branch_to_value.append(entry.value())
+            ats.num_branches += 1
+        branch_end = ats.num_branches
+        ats.choice_branches[choice] =  list(range(branch_start, branch_end))
 
-atsy.write(ats, "nand.tar.gz")
-exit()
+atsy.write(ats, tar_filename)

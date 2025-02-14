@@ -126,6 +126,8 @@ def read(filepath: str) -> atsy.Ats:
 
     if "branch-to-value.bin" in filename_data:
         ats.branch_to_value = atsy.vector_from_bytes(filename_data["branch-to-value.bin"], "double")
+
+    ats.validate()
     return ats
 
 
