@@ -11,7 +11,7 @@ authors = [{name = "Roman Andriushchenko", email = "roman.andriu@gmail.com"}]
 license = {file = "LICENSE"}
 dependencies = [
   "pytest",
-  "numpy>=1.21.0",
+  "marshmallow",
 ]
 requires-python = ">=3.9"
 

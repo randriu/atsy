@@ -25,7 +25,5 @@ def test_vector_import():
     )
     assert vector[0] == 3.14
 
-    vector = atsy.vector_import(
-        importlib.resources.files("atsy.data").joinpath("vector-uint.bin"), dtype=int
-    )
+    vector = atsy.vector_import(importlib.resources.files("atsy.data").joinpath("vector-uint.bin"), dtype=int)
     assert vector[0] == 5
