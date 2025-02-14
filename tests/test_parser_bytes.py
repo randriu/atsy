@@ -33,7 +33,7 @@ def test_json_bytes():
 
 
 def test_tar():
-    filename_data = atsy.tar_read("data/nand.tar.gz")
+    filename_data = atsy.tar_read("data/nand-20-1.tar.gz")
     assert "index.json" in filename_data
     for data in filename_data.values():
         assert isinstance(data, bytes)

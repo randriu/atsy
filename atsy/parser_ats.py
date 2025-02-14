@@ -5,7 +5,7 @@ from marshmallow import Schema, ValidationError, fields, post_load, validates_sc
 import atsy
 
 
-class Uint(fields.Int):
+class FieldUint(fields.Int):
     """Custom field for unsigned integers."""
 
     def _deserialize(self, value, attr, data, **kwargs):
@@ -15,15 +15,16 @@ class Uint(fields.Int):
         return result
 
 
-class ModelInfoSchema(Schema):
-    """File info JSON schema."""
+class ModelDataSchema(Schema):
+    """Model data JSON schema."""
 
-    version = fields.Str(data_key="?version")
-    authors = fields.List(fields.Str(), data_key="?authors")
-    description = fields.Str(data_key="?description")
-    comment = fields.Str(data_key="?comment")
-    doi = fields.Str(data_key="?doi")
-    url = fields.Str(data_key="?url")
+    name = fields.Str(data_key="name")
+    version = fields.Str(data_key="version")
+    authors = fields.List(fields.Str(), data_key="authors")
+    description = fields.Str(data_key="description")
+    comment = fields.Str(data_key="comment")
+    doi = fields.Str(data_key="doi")
+    url = fields.Str(data_key="url")
 
     @post_load
     def make_object(self, data, **kwargs):
@@ -31,18 +32,18 @@ class ModelInfoSchema(Schema):
         return SimpleNamespace(**data)
 
     @classmethod
-    def default_object(cls):
+    def empty_object(cls):
         """Create an empty object with attributes (set to None) corresponding to the fields of JSON schema."""
         return SimpleNamespace(**{field: None for field in cls().fields})
 
 
-class CreationInfoSchema(Schema):
-    """Creation info JSON schema."""
+class FileDataSchema(Schema):
+    """File data JSON schema."""
 
-    tool = fields.Str(required=True)
-    version = fields.Str(data_key="?version")
-    date = fields.Int(data_key="?date")
-    parameters = fields.Str(data_key="?parameters")
+    tool = fields.Str(data_key="tool")
+    tool_version = fields.Str(data_key="tool-version")
+    creation_date = FieldUint(data_key="creation-date")
+    parameters = fields.Str(data_key="parameters")
 
     @post_load
     def make_object(self, data, **kwargs):
@@ -50,7 +51,7 @@ class CreationInfoSchema(Schema):
         return SimpleNamespace(**data)
 
     @classmethod
-    def default_object(cls):
+    def empty_object(cls):
         """Create an empty object with attributes (set to None) corresponding to the fields of JSON schema."""
         return SimpleNamespace(**{field: None for field in cls().fields})
 
@@ -58,19 +59,19 @@ class CreationInfoSchema(Schema):
 class AtsInfoSchema(Schema):
     """ATS index file JSON schema."""
 
-    format_version = Uint(data_key="format-version", required=True)
-    format_revision = Uint(data_key="format-revision", required=True)
-    model_info = fields.Nested(ModelInfoSchema, data_key="metadata", required=True)
-    creation_info = fields.Nested(CreationInfoSchema, data_key="creation", required=True)
+    format_version = FieldUint(data_key="format-version", required=True)
+    format_revision = FieldUint(data_key="format-revision", required=True)
+    model_data = fields.Nested(ModelDataSchema, data_key="model-data")
+    file_data = fields.Nested(FileDataSchema, data_key="file-data")
 
     # branch_values = fields.Str(data_key="branch-values", required=True)
     # branch_value_type = fields.Str(data_key="branch-value-type", required=True)
 
-    num_players = Uint(data_key="players", required=True)
-    num_states = Uint(data_key="#states", required=True)
-    # num_initial_states = Uint(data_key="#initial-states", required=True) # discuss
-    num_choices = Uint(data_key="#choice", required=True)
-    num_branches = Uint(data_key="#branches", required=True)
+    num_players = FieldUint(data_key="#players", required=True)
+    num_states = FieldUint(data_key="#states", required=True)
+    # num_initial_states = FieldUint(data_key="#initial-states", required=True) # discuss
+    num_choices = FieldUint(data_key="#choice", required=True)
+    num_branches = FieldUint(data_key="#branches", required=True)
 
     @validates_schema
     def validate_fields(self, data, **kwargs):
@@ -78,11 +79,11 @@ class AtsInfoSchema(Schema):
         pass  # will probably delegate to Ats::validate()
 
     @classmethod
-    def default_object(cls):
+    def empty_object(cls):
         """Create an empty object with attributes (set to None) corresponding to the fields of JSON schema."""
         obj = SimpleNamespace(**{field: None for field in cls().fields})
-        obj.model_info = ModelInfoSchema.default_object()
-        obj.creation_info = CreationInfoSchema.default_object()
+        obj.model_data = ModelDataSchema.empty_object()
+        obj.file_data = FileDataSchema.empty_object()
         return obj
 
     @post_load
@@ -103,11 +104,12 @@ def row_start_to_ranges(row_start: list) -> list:
 def ranges_to_row_start(ranges: list) -> list:
     """Convert ranges to row start indices."""
     row_start = [interval[0] for interval in ranges]
-    row_start.append(ranges[-1][-1])
+    row_start.append(ranges[-1][-1]+1)
+    assert len(row_start) == len(ranges)+1
     return row_start
 
 
-def read(filepath: str) -> atsy.Ats:
+def from_umb(filepath: str) -> atsy.Ats:
     """Read ATS from a tarbal file."""
     filename_data = atsy.tar_read(filepath)
     ats = atsy.Ats()
@@ -122,16 +124,16 @@ def read(filepath: str) -> atsy.Ats:
     ats.initial_states = atsy.vector_from_bytes(filename_data["initial-states.bin"], "uint")
     ats.state_choices = row_start_to_ranges(atsy.vector_from_bytes(filename_data["state-to-choice.bin"], "uint"))
     ats.choice_branches = row_start_to_ranges(atsy.vector_from_bytes(filename_data["choice-to-branch.bin"], "uint"))
-    ats.branch_to_target = atsy.vector_from_bytes(filename_data["branch-to-target.bin"], "uint")
+    ats.branch_target = atsy.vector_from_bytes(filename_data["branch-to-target.bin"], "uint")
 
     if "branch-to-value.bin" in filename_data:
-        ats.branch_to_value = atsy.vector_from_bytes(filename_data["branch-to-value.bin"], "double")
+        ats.branch_value = atsy.vector_from_bytes(filename_data["branch-to-value.bin"], "double")
 
     ats.validate()
     return ats
 
 
-def write(ats: atsy.Ats, filepath: str):
+def to_umb(ats: atsy.Ats, filepath: str):
     """Store ATS to a tarball file."""
     ats.validate()
 
@@ -145,7 +147,7 @@ def write(ats: atsy.Ats, filepath: str):
     filename_data["initial-states.bin"] = atsy.vector_to_bytes(ats.initial_states, "uint")
     filename_data["state-to-choice.bin"] = atsy.vector_to_bytes(ranges_to_row_start(ats.state_choices), "uint")
     filename_data["choice-to-branch.bin"] = atsy.vector_to_bytes(ranges_to_row_start(ats.choice_branches), "uint")
-    filename_data["branch-to-target.bin"] = atsy.vector_to_bytes(ats.branch_to_target, "uint")
-    if ats.branch_to_value is not None:
-        filename_data["branch-to-value.bin"] = atsy.vector_to_bytes(ats.branch_to_value, "double")
+    filename_data["branch-to-target.bin"] = atsy.vector_to_bytes(ats.branch_target, "uint")
+    if ats.branch_value is not None:
+        filename_data["branch-to-value.bin"] = atsy.vector_to_bytes(ats.branch_value, "double")
     atsy.tar_write(filepath, filename_data)

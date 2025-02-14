@@ -25,17 +25,17 @@ def type_to_size(value_type: str) -> int:
     return table[value_type]
 
 
-def endianness_to_struct_format(endianness):
+def endianness_to_struct_format(little_endian: bool):
     """
-    endianness: True for big-endian, False for little-endian
+    endianness: True for little-endian, False for big-endian
     """
-    table = {True: ">", False: "<"}
-    if endianness not in table:
-        raise ValueError(f"endianness must be in {table} but is {endianness}")
-    return table[endianness]
+    table = {False: ">", True: "<"}
+    if little_endian not in table:
+        raise ValueError(f"endianness must be in {table} but is {little_endian}")
+    return table[little_endian]
 
 
-def vector_from_bytes(vector_bytes: bytes, value_type: str, big_endian: bool = True) -> list:
+def vector_from_bytes(vector_bytes: bytes, value_type: str, little_endian: bool = True) -> list:
     """
     Decode a binary string as a list of numbers.
 
@@ -43,13 +43,13 @@ def vector_from_bytes(vector_bytes: bytes, value_type: str, big_endian: bool = T
     """
     value_size = type_to_size(value_type)
     type_format = type_str_to_struct_format(value_type)
-    order_format = endianness_to_struct_format(big_endian)
+    order_format = endianness_to_struct_format(little_endian)
     num_count = len(vector_bytes) // value_size
     vector = struct.unpack(f"{order_format}{num_count}{type_format}", vector_bytes)
     return list(vector)
 
 
-def vector_to_bytes(vector: list, value_type: str, big_endian: bool = True) -> bytes:
+def vector_to_bytes(vector: list, value_type: str, little_endian: bool = True) -> bytes:
     """Encode as list of number as a binary string."""
     type_format = type_str_to_struct_format(value_type)
     assert len(vector) > 0
@@ -57,7 +57,7 @@ def vector_to_bytes(vector: list, value_type: str, big_endian: bool = True) -> b
         assert isinstance(item, int) or isinstance(item, float)
         if value_type == "uint":
             assert isinstance(item, int) and item >= 0
-    order_format = endianness_to_struct_format(big_endian)
+    order_format = endianness_to_struct_format(little_endian)
     return struct.pack(f"{order_format}{len(vector)}{type_format}", *vector)
 
 

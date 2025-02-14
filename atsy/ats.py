@@ -8,7 +8,7 @@ class Ats:
     """Annotated transition system."""
 
     def __init__(self):
-        self.index = atsy.AtsInfoSchema.default_object()
+        self.index = atsy.AtsInfoSchema.empty_object()
 
         self.num_players = None
         self.num_states = None
@@ -18,8 +18,8 @@ class Ats:
         self.initial_states = None
         self.state_choices = None
         self.choice_branches = None
-        self.branch_to_target = None
-        self.branch_to_value = None
+        self.branch_target = None
+        self.branch_value = None
         self.annotations = None
 
     def validate(self):
@@ -38,13 +38,13 @@ class Ats:
 
 
         assert_is_list(self.initial_states, "ats.initial_states")
-        assert_is_list(self.branch_to_target, "ats.branch_to_target")
-        assert_is_list(self.branch_to_value, "ats.branch_to_value")
+        assert_is_list(self.branch_target, "ats.branch_target")
+        assert_is_list(self.branch_value, "ats.branch_value")
 
     def choice_successors(self, choice: int) -> set:
         successors = set()
         for branch in self.choice_branches[choice]:
-            successors.add(self.branch_to_target[branch])
+            successors.add(self.branch_target[branch])
         return successors
 
     def state_successors(self, state: int) -> set:
@@ -56,7 +56,7 @@ class Ats:
     def choice_distribution(self, choice: int) -> dict:
         distr = collections.defaultdict(int)
         for branch in self.choice_branches[choice]:
-            distr[self.branch_to_target[branch]] += self.branch_to_value[branch]
+            distr[self.branch_target[branch]] += self.branch_value[branch]
         return dict(distr)
 
     def sample_choice(self, state: int) -> int:
