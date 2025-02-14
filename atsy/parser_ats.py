@@ -140,10 +140,10 @@ def write(ats: atsy.Ats, filepath: str):
 
     filename_data = {}
     filename_data["index.json"] = atsy.json_to_bytes(AtsInfoSchema().dump(ats.index))
-    filename_data["initial-states.bin"] = atsy.vector_to_bytes(ats.initial_states)
-    filename_data["state-to-choice.bin"] = atsy.vector_to_bytes(ranges_to_row_start(ats.state_choices))
-    filename_data["choice-to-branch.bin"] = atsy.vector_to_bytes(ranges_to_row_start(ats.choice_branches))
-    filename_data["branch-to-target.bin"] = atsy.vector_to_bytes(ats.branch_to_target)
+    filename_data["initial-states.bin"] = atsy.vector_to_bytes(ats.initial_states, "uint")
+    filename_data["state-to-choice.bin"] = atsy.vector_to_bytes(ranges_to_row_start(ats.state_choices), "uint")
+    filename_data["choice-to-branch.bin"] = atsy.vector_to_bytes(ranges_to_row_start(ats.choice_branches), "uint")
+    filename_data["branch-to-target.bin"] = atsy.vector_to_bytes(ats.branch_to_target, "uint")
     if ats.branch_to_value is not None:
-        filename_data["branch-to-value.bin"] = atsy.vector_to_bytes(ats.branch_to_value)
+        filename_data["branch-to-value.bin"] = atsy.vector_to_bytes(ats.branch_to_value, "double")
     atsy.tar_write(filepath, filename_data)

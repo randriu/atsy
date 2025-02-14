@@ -49,15 +49,14 @@ def vector_from_bytes(vector_bytes: bytes, value_type: str, big_endian: bool = T
     return list(vector)
 
 
-def vector_to_bytes(vector: list, big_endian: bool = True) -> bytes:
+def vector_to_bytes(vector: list, value_type: str, big_endian: bool = True) -> bytes:
     """Encode as list of number as a binary string."""
-    assert len(vector) > 0
-    value_type = type(vector[0])
-    table = {int: "uint", float: "double"}
-    if value_type not in table:
-        raise ValueError(f"endianness must be in {table} but is {value_type}")
-    value_type = table[value_type]
     type_format = type_str_to_struct_format(value_type)
+    assert len(vector) > 0
+    for item in vector:
+        assert isinstance(item, int) or isinstance(item, float)
+        if value_type == "uint":
+            assert isinstance(item, int) and item >= 0
     order_format = endianness_to_struct_format(big_endian)
     return struct.pack(f"{order_format}{len(vector)}{type_format}", *vector)
 
