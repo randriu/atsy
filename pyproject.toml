@@ -26,10 +26,11 @@ dev = [
 ]
 
 [tool.setuptools]
+packages = ["atsy"]
 include-package-data = true
 
 [tool.setuptools.package-data]
-"atsy" = ["data/*"]
+"atsy" = ["data/*", "examples/*"]
 
 [project.scripts]
 atsy = "atsy.__main__:main"

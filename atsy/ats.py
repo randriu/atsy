@@ -55,3 +55,13 @@ class Ats:
         distr = self.choice_distribution(choice)
         target = random.choices(population=list(distr.keys()), weights=list(distr.values()), k=1)[0]
         return target
+
+    def sample_path(self, state=None, length=0):
+        if state is None:
+            state = random.choice(self.initial_states)
+        path = [state]
+        for _ in range(length):
+            choice = self.sample_choice(state)
+            state = self.sample_choice_target(choice)
+            path.append(state)
+        return path
